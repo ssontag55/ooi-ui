@@ -15,6 +15,9 @@ var TOCView = Backbone.View.extend({
   events: {   
     'keyup #search-filter' : 'filterToc'
   },
+  initialRender: function() {
+    this.$el.html('<i class="fa fa-spinner fa-spin" style="margin-top:50px;margin-left:50%;font-size:90px;color:#337ab7;"> </i>');
+  },
   add: function(arrayModel){
     
     var subview = new ArrayItemView({
@@ -29,6 +32,7 @@ var TOCView = Backbone.View.extend({
   initialize: function(){
     _.bindAll(this, "render", "add","filterToc");
     this.subviews = [];
+    this.initialRender();
     this.listenTo(this.collection, "reset", this.render);
   },
   template: JST['ooiui/static/js/partials/TOC.html'],
@@ -146,13 +150,15 @@ var ArrayItemView = Backbone.View.extend({
     //search for ref deg, and modify the top level parent
     var ref_deg = platformModel.attributes.ref_des
     //console.log(ref_deg)
-    if (subview.platformType == "parent-platform"){
+    if (subview.platformType == "parent-platform" &&ref_deg!=null){
       var platformDeploymentsSubset = this.model.platformDeployments.filter(function(model) { 
-        return _.any([model.attributes.ref_des], function(v) {
-        //return _.any([model.attributes.reference_designator], function(v) {
-          var vv = v.indexOf(ref_deg)!= -1;;          
-          return vv
-        });                  
+        if(model.attributes.ref_des){
+          return _.any([model.attributes.ref_des], function(v) {
+          //return _.any([model.attributes.reference_designator], function(v) {
+            var vv = v.search(ref_deg)!= -1;;          
+            return vv
+          });
+        }                
       });
       //update the badge
       subview.$el.find(".badge").text(platformDeploymentsSubset.length-1)
